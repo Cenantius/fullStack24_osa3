@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let persons = [
     {
         id: 1,
@@ -36,6 +38,32 @@ app.get('/api/persons/:id', (req, res) => {
     } else {
         res.status(404).end()
     }
+})
+
+// MUUTETTU KURSSIN VERSIOSTA ISOKSI RANDOM POOLIKSI
+const generateId = () => {
+    const maxId = Math.floor(Math.random() * (1000 - 1) + 1)
+    return maxId
+}
+
+app.post('/api/persons', (req, res) => {
+    const body = req.body
+
+    if (!body.name || !body.number) {
+        return res.status(400).json({
+            error: 'content missing'
+        })
+    }
+
+    const person = {
+        id: generateId(),
+        name: body.name,
+        number: body.number
+    }
+
+    persons = persons.concat(person)
+
+    res.json(person)
 })
 
 app.delete('/api/persons/:id', (req, res) => {
