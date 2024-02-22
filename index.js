@@ -1,6 +1,10 @@
+// Täytyy ottaa käyttöön ennen modelin person importtaamista
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
+const Person = require('./models/person')
 
 const app = express()
 
@@ -37,18 +41,26 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
+    Person.find({}).then(persons => {
     res.json(persons)
+    })
 })
 
 app.get('/api/persons/:id', (req, res) => {
+
+    Person.findById(req.params.id).then(person => {
+        res.json(person)
+    })
+    
+    /* VANHA TOTEUTUS
     const id = Number(req.params.id)
     const person = persons.find(person => person.id === id)
-
     if (person) {
         res.json(person)
     } else {
         res.status(404).end()
     }
+    */
 })
 
 // MUUTETTU KURSSIN VERSIOSTA ISOKSI RANDOM POOLIKSI
@@ -73,15 +85,23 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    const person = {
+    // Toisin kuin luentomateriaalissa. Tässä funktiossa on
+    // edelleen id: generateId -toiminnallisuus
+    const person = new Person({
         id: generateId(),
         name: body.name,
         number: body.number
-    }
+    })
 
-    persons = persons.concat(person)
+    // Tämä testissä, koska luentomateriaalissa ei ollut
+    // persons = persons.concat(person)
 
-    res.json(person)
+    // Pyyntöön vastataan save -takaisinfunktion sisällä,
+    // jotta operaation vastaus tapahtuu vain, jos operaatio
+    // on onnistunut
+    person.save().then(savedPerson => {
+        res.json(savedPerson)
+    })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
