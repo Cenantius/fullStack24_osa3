@@ -8,9 +8,11 @@ const Person = require('./models/person')
 
 const app = express()
 
+// express.staticin kutsuminen siirretty ensimmäiseksi 
+// viimeisestä
+app.use(express.static('dist'))
 app.use(express.json())
 app.use(cors())
-app.use(express.static('dist'))
 
 morgan.token('body', req => {
     return JSON.stringify(req.body)
@@ -18,6 +20,7 @@ morgan.token('body', req => {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
+// Tämän jos poistaa niin sattuu!!
 let persons = [
     {
         id: 1,
@@ -46,12 +49,20 @@ app.get('/api/persons', (req, res) => {
     })
 })
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
 
-    Person.findById(req.params.id).then(person => {
-        res.json(person)
-    })
-    
+    Person.findById(req.params.id)
+        .then(person => {
+            if (person) {
+                res.json(person)
+            } else {
+                res.status(404).end()
+            }
+        })
+        // Siirretään virhetilanteen käsittely eteenpäin
+        // funktiolla next
+        .catch(error => next(error))
+
     /* VANHA TOTEUTUS
     const id = Number(req.params.id)
     const person = persons.find(person => person.id === id)
@@ -104,16 +115,31 @@ app.post('/api/persons', (req, res) => {
     })
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter(person => person.id !== id)
-
-    res.status(204).end()
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndDelete(req.params.id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(error => next(error))
 })
 
 app.get('/info', (req, res) => {
     res.send(`<p>Phonebook has info for ${persons.length} people</p> <p>${Date()}</p>`)
 })
+
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id'})
+    }
+
+    next(error)
+}
+
+// Pitää ottaa käyttöön vasta kaikkien muiden middlewarejen
+// ja routejen rekisteröinnin jälkeen
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () =>{
