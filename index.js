@@ -62,16 +62,6 @@ app.get('/api/persons/:id', (req, res, next) => {
         // Siirretään virhetilanteen käsittely eteenpäin
         // funktiolla next
         .catch(error => next(error))
-
-    /* VANHA TOTEUTUS
-    const id = Number(req.params.id)
-    const person = persons.find(person => person.id === id)
-    if (person) {
-        res.json(person)
-    } else {
-        res.status(404).end()
-    }
-    */
 })
 
 // MUUTETTU KURSSIN VERSIOSTA ISOKSI RANDOM POOLIKSI
@@ -117,40 +107,6 @@ app.post('/api/persons', (req, res, next) => {
             }
         })
         .catch(error => next(error))
-
-    // some() -funktio kertoo onko kohteessa haettava
-    /*if (persons.some(person => person.name === body.name)) {
-        if (person.number != body.number) {
-            Person.findByIdAndUpdate(req.params.id, person, {new: true})
-                then(updatedPerson => {
-                    res.json(updatedPerson)
-                })
-                .catch(error => next(error))
-        }
-        else {
-            return res.status(400).json({
-            error: 'person is already in the phonebook'
-        })
-    }
-    }*/
-
-    // Toisin kuin luentomateriaalissa. Tässä funktiossa on
-    // edelleen id: generateId -toiminnallisuus
-    /*const person = new Person({
-        id: generateId(),
-        name: body.name,
-        number: body.number
-    })*/
-
-    // Tämä testissä, koska luentomateriaalissa ei ollut
-    // persons = persons.concat(person)
-
-    // Pyyntöön vastataan save -takaisinfunktion sisällä,
-    // jotta operaation vastaus tapahtuu vain, jos operaatio
-    // on onnistunut
-    /*person.save().then(savedPerson => {
-        res.json(savedPerson)
-    })*/
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
