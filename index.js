@@ -80,7 +80,7 @@ const generateId = () => {
     return maxId
 }
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
 
     if (!body.name || !body.number) {
@@ -89,20 +89,58 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
+    Person.findOne({ name: body.name })
+        .then(existingPerson => {
+            if (existingPerson) {
+                if (existingPerson.number !== body.number) {
+                    // Päivitetään olemassaolevan yhteystiedon numero
+                    Person.findByIdAndUpdate(existingPerson._id, { number: body.number }, { new: true })
+                        .then(updatedPerson => {
+                            res.json(updatedPerson)
+                        })
+                        .catch(error => next(error))
+                } else {
+                    return res.status(400).json({
+                        error: 'Person is already added to phonebook'
+                    })
+                }
+            } else {
+                // Id generaattori nyt poistettuna
+                const person = new Person({
+                    name: body.name,
+                    number: body.number
+                })
+
+                person.save().then(savedPerson => {
+                    res.json(savedPerson)
+                })
+            }
+        })
+        .catch(error => next(error))
+
     // some() -funktio kertoo onko kohteessa haettava
-    if (persons.some(person => person.name === body.name)) {
-        return res.status(400).json({
-            error: 'name must be unique!'
+    /*if (persons.some(person => person.name === body.name)) {
+        if (person.number != body.number) {
+            Person.findByIdAndUpdate(req.params.id, person, {new: true})
+                then(updatedPerson => {
+                    res.json(updatedPerson)
+                })
+                .catch(error => next(error))
+        }
+        else {
+            return res.status(400).json({
+            error: 'person is already in the phonebook'
         })
     }
+    }*/
 
     // Toisin kuin luentomateriaalissa. Tässä funktiossa on
     // edelleen id: generateId -toiminnallisuus
-    const person = new Person({
+    /*const person = new Person({
         id: generateId(),
         name: body.name,
         number: body.number
-    })
+    })*/
 
     // Tämä testissä, koska luentomateriaalissa ei ollut
     // persons = persons.concat(person)
@@ -110,9 +148,9 @@ app.post('/api/persons', (req, res) => {
     // Pyyntöön vastataan save -takaisinfunktion sisällä,
     // jotta operaation vastaus tapahtuu vain, jos operaatio
     // on onnistunut
-    person.save().then(savedPerson => {
+    /*person.save().then(savedPerson => {
         res.json(savedPerson)
-    })
+    })*/
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
