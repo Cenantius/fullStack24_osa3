@@ -8,11 +8,14 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:ui": "@powershell Remove-Item -Recurse -Force dist && cd ../fullStack24/osa2/puhelinluettelo/ && npm run build && @powershell Copy-Item dist -Recurse ../../../fullStack24_osa3/",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push",
+    "lint": "eslint ."
   },
   "author": "chobo",
   "license": "ISC",
   "devDependencies": {
+    "@stylistic/eslint-plugin-js": "^1.6.3",
+    "eslint": "^8.57.0",
     "nodemon": "^3.0.3"
   },
   "dependencies": {
